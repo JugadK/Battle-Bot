@@ -1,0 +1,15 @@
+{
+	"folders": [
+		{
+			"path": "../../../../../../esp_hid_host"
+		},
+		{
+			"path": "../../../../.."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"*.ipp": "c"
+		}
+	}
+}
