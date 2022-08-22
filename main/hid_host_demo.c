@@ -51,6 +51,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#include "ps4/ps4_parser.h"
 #include "btstack_config.h"
 #include "btstack.h"
 #include <driver/gpio.h>
@@ -199,8 +200,6 @@ static void hid_host_handle_interrupt_report(const uint8_t * report, uint16_t re
     memset(new_keys, 0, sizeof(new_keys));
     int     new_keys_count = 0;
     while (btstack_hid_parser_has_more(&parser)){
-
-        printf("hello");
 
         uint16_t usage_page;
         uint16_t usage;
@@ -351,22 +350,13 @@ static void packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *pack
                                 hid_host_handle_interrupt_report(hid_subevent_report_get_report(packet), hid_subevent_report_get_report_len(packet));
                             } else {
 
-                               /* for(int i = 0; i < size; i++) {
-                                    printf("%02x ", packet[i]);
-                                } */
+                                //for(int i = 0; i < size; i++) {
+                                //    printf("%02x ", packet[i]);
+                                //} 
+								//printf("\n");
+								ps4_parse_packet(packet, size);
 
-                              
-                                if(packet[13] == 0x48) {
 
-
-                                    printf("Hi");
-                                    //gpio_set_level(2,0);
-                                    //esp_sleep_enable_timer_wakeup(10000);
-                                    //esp_light_sleep_start();
-                                    //gpio_set_level(2,1);
-                                }
-
-                                printf("\n");
                                 //printf_hexdump(hid_subevent_report_get_report(packet), hid_subevent_report_get_report_len(packet));
                             }
                             break;

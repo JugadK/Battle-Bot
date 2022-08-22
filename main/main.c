@@ -46,6 +46,7 @@
 #include <driver/gpio.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
+#include <esp_task_wdt.h>
 
 #include <stddef.h>
 
@@ -53,34 +54,14 @@
 
 extern int btstack_main(int argc, const char *argv[]);
 
-void blink()
-{
-
-    gpio_config_t io_conf;
-    io_conf.intr_type = GPIO_PIN_INTR_DISABLE;
-    io_conf.mode = GPIO_MODE_OUTPUT;
-    io_conf.pin_bit_mask = (1ULL << LED);
-    io_conf.pull_down_en = 0;
-    io_conf.pull_up_en = 0;
-    gpio_config(&io_conf);
-
-    while (true)
-    {
-        gpio_set_level(LED, 0);
-        vTaskDelay(500 / portTICK_RATE_MS);
-        gpio_set_level(LED, 1);
-        vTaskDelay(500 / portTICK_RATE_MS);
-    }
-}
-
 // NOTE BTSTACK IS NOT THREAD SAFE
 // only call btstack functions from within this thread;
+// Otherwise use mutexes, queues semaphores etc.
 void initBTStack()
 {
 
     // optional: enable packet logger
-    hci_dump_init(hci_dump_embedded_stdout_get_instance());
-
+    //hci_dump_init(hci_dump_embedded_stdout_get_instance());
     btstack_init();
     btstack_main(0, NULL);
 
@@ -90,9 +71,9 @@ void initBTStack()
 
 int app_main(void)
 {
-
-    xTaskCreatePinnedToCore(initBTStack, "slow", 4096, NULL, 2, NULL, 0);
-    xTaskCreatePinnedToCore(blink, "fast", 1024, NULL, 1, NULL, 0);
-
+	//esp_task_wdt_init(30, false);
+	
+	initBTStack();
+    //xTaskCreate(initBTStack, "BTINPUT", 30000, NULL, 2, NULL);
     return 0;
 }
