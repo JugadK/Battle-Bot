@@ -61,7 +61,7 @@ void initBTStack()
 {
 
     // optional: enable packet logger
-    //hci_dump_init(hci_dump_embedded_stdout_get_instance());
+    hci_dump_init(hci_dump_embedded_stdout_get_instance());
     btstack_init();
     btstack_main(0, NULL);
 
