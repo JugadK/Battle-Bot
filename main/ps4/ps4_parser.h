@@ -1,3 +1,5 @@
+#pragma once
+
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -12,6 +14,8 @@ typedef struct {
 	bool down_d_pad;
 	bool right_d_pad;
 	bool up_d_pad;
+	bool rButton;
+	bool lButton;
 
 	uint8_t left_trigger_percent;
 	uint8_t right_trigger_percent;
@@ -21,9 +25,9 @@ typedef struct {
 	int8_t right_joystick_x_axis;
 	int8_t right_joystick_y_axis;
 
-} controller_state;
+	} controller_state;
 
-void ps4_parse_packet(uint8_t *packet, uint16_t size);
+controller_state ps4_parse_packet(uint8_t *packet, uint16_t size);
 
 void print_controller_state(controller_state *ps4_state);
 

@@ -1,19 +1,9 @@
-#include "driver/gpio.h"
-#include "driver/mcpwm.h"
+#include "tb6612fng.h"
 
 #define AI2 32
 #define AI1 23
 #define BI1 22
 #define BI2 33
-
-typedef struct {
-  gpio_num_t input1;
-  gpio_num_t input2;
-  gpio_num_t pwm;
-  mcpwm_unit_t mcpwm_unit;
-  mcpwm_timer_t mcpwm_timer;
-  mcpwm_operator_t mcpwm_op;
-} tb6612_motor_t;
 
 // 1 2 PWM
 // H H H/L Short Brake

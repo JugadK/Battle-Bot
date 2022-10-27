@@ -56,6 +56,14 @@
 #include "btstack.h"
 #include <driver/gpio.h>
 #include "esp_sleep.h"
+#include "drive_control/drive_control.h"
+
+// Temporary, see comment in main.c initBStack for why
+robot_driver_control_t driver_control;
+
+void init_drivers() {
+	
+}
 
 #define MAX_ATTRIBUTE_VALUE_SIZE 300
 
@@ -75,6 +83,8 @@ static btstack_packet_callback_registration_t hci_event_callback_registration;
 #define CHAR_ESCAPE      27
 #define CHAR_TAB         '\t'
 #define CHAR_BACKSPACE   0x7f
+
+
 
 /**
  * English (US)
@@ -184,8 +194,6 @@ static void hid_host_handle_interrupt_report(const uint8_t * report, uint16_t re
     if (report_len < 1) return;
     if (*report != 0xa1) return; 
 
-    printf("fodsajfods");
-    
     report++;
     report_len--;
     
@@ -350,12 +358,14 @@ static void packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *pack
                                 hid_host_handle_interrupt_report(hid_subevent_report_get_report(packet), hid_subevent_report_get_report_len(packet));
                             } else {
 
-                                //for(int i = 0; i < size; i++) {
-                                //    printf("%02x ", packet[i]);
-                                //} 
-								//printf("\n");
-								ps4_parse_packet(packet, size);
-
+                                /*for(int i = 0; i < size; i++) {
+                                    printf("%02x ", packet[i]);
+                                } 
+																printf("\n");
+															*/
+															controller_state ps4_state = ps4_parse_packet(packet, size);
+																													
+															control_ps4(&ps4_state, &driver_control);
 
                                 //printf_hexdump(hid_subevent_report_get_report(packet), hid_subevent_report_get_report_len(packet));
                             }
@@ -447,7 +457,10 @@ static void stdin_process(char cmd){
 
 int btstack_main(int argc, const char * argv[]);
 int btstack_main(int argc, const char * argv[]){
+		
 
+		// THIS IS BAD, since we are using btstack temporary, more in main.c
+		driver_control = init_drive_control();		
     (void)argc;
     (void)argv;
 

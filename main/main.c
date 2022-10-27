@@ -47,6 +47,9 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <esp_task_wdt.h>
+#include "tb6612fng/tb6612fng.h"
+//#include "drive_control/drive_control.h"
+
 
 #include <stddef.h>
 
@@ -57,12 +60,18 @@ extern int btstack_main(int argc, const char *argv[]);
 // NOTE BTSTACK IS NOT THREAD SAFE
 // only call btstack functions from within this thread;
 // Otherwise use mutexes, queues semaphores etc.
-void initBTStack()
+void initRobot()
 {
 
+
     // optional: enable packet logger
-    hci_dump_init(hci_dump_embedded_stdout_get_instance());
-    btstack_init();
+    //hci_dump_init(hci_dump_embedded_stdout_get_instance());
+   
+		// THIS ALSO INITS DRIVERS
+		// eventually we want to switch to our own bluetooth implementation
+		// but since we change btstack_run_loop_execute() to have a driver input
+		// this will do
+		btstack_init();
     btstack_main(0, NULL);
 
     // Enter run loop, does not return
@@ -72,8 +81,7 @@ void initBTStack()
 int app_main(void)
 {
 	//esp_task_wdt_init(30, false);
-	
-	initBTStack();
-    //xTaskCreate(initBTStack, "BTINPUT", 30000, NULL, 2, NULL);
-    return 0;
-}
+	 
+	xTaskCreate(initRobot, "BTINPUT", 30000, NULL, 2, NULL);
+  return 0;
+}	

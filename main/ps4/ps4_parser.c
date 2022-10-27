@@ -15,6 +15,7 @@ typedef enum {
 	RIGHT_JOYSTICK_X = 11,
 	RIGHT_JOYSTICK_Y = 12,
 	QUAD_BUTTONS = 13,
+	RL_BUTTONS = 14,
 	LEFT_TRIGGER_INDEX = 16,
 	RIGHT_TRIGGER_INDEX = 17,
 } ps4_packet_index; 
@@ -88,6 +89,23 @@ void _parse_joystick(uint8_t y_axis, uint8_t x_axis, controller_state *ps4_state
 	}
 }
 
+void _parse_rl_buttons(controller_state *ps4_state, int8_t rl_state) {
+
+	if(rl_state == 2) {
+		ps4_state->rButton = true;
+		ps4_state->lButton = false;
+	} else if (rl_state == 1) {
+		ps4_state->rButton = false;
+		ps4_state->lButton = true;
+	} else if(rl_state == 3) {
+		ps4_state->rButton = true;
+		ps4_state->lButton = true; 
+	} else {
+		ps4_state->rButton = false;
+		ps4_state->lButton = false;
+	}
+}
+
 void blink(int on)
 {
 	
@@ -106,26 +124,32 @@ void blink(int on)
 void print_controller_state(controller_state *ps4_state) {
 
 	// buttons
-	 printf("square_button : %x x_button : %x circle_button : %x triangle_button : %x \nleft : %x down : %x  right : %x up : %x\n "
+/*	 printf("square_button : %x x_button : %x circle_button : %x triangle_button : %x \nleft : %x down : %x  right : %x up : %x\n "
 			,ps4_state->square_button, ps4_state->x_button, ps4_state->triangle_button, ps4_state->circle_button,
 			ps4_state->left_d_pad, ps4_state->down_d_pad, ps4_state->right_d_pad, ps4_state->up_d_pad); 	
-
+*/
+	// RL buttons
+	printf("r_button : %x l_button : %x", ps4_state->rButton, ps4_state->lButton);
+/*
 	// triggers
 	 printf("right_trigger : %x left_trigger : %x", ps4_state->right_trigger_percent, ps4_state->left_trigger_percent);
-
+	
 	// joysticks
 	 printf("right joysticks x-axis : %i y-axis : %i", ps4_state->right_joystick_x_axis, ps4_state->right_joystick_y_axis);
 	 printf("left joysticks x-axis : %i y-axis : %i", ps4_state->left_joystick_x_axis, ps4_state->left_joystick_y_axis);
-};
+*/
+ };
 
 // Parse bluetooth packet from PS4 controller, call robot control functions from here
-void ps4_parse_packet(uint8_t *packet, uint16_t size)
+controller_state ps4_parse_packet(uint8_t *packet, uint16_t size)
 {
 
 	controller_state ps4_state;
 	_parse_shape_buttons(packet[QUAD_BUTTONS], &ps4_state);
 
 	_parse_d_pad(packet[QUAD_BUTTONS], &ps4_state);
+
+	_parse_rl_buttons(&ps4_state, packet[RL_BUTTONS]);
 
 	_parse_trigger_button(packet[RIGHT_TRIGGER_INDEX], &ps4_state, RIGHT_TRIGGER);
 	_parse_trigger_button(packet[LEFT_TRIGGER_INDEX], &ps4_state, LEFT_TRIGGER);
@@ -138,5 +162,8 @@ void ps4_parse_packet(uint8_t *packet, uint16_t size)
 	} else if(!(ps4_state.circle_button || ps4_state.triangle_button || ps4_state.x_button || ps4_state.square_button) && led_state == 1) {
 		blink(0);
 	}
+		
+	return ps4_state;
+	//print_controller_state(&ps4_state);
 };
 
