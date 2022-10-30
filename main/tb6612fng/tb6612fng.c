@@ -1,4 +1,5 @@
 #include "tb6612fng.h"
+#include "driver/mcpwm.h"
 
 #define AI2 32
 #define AI1 23
@@ -15,6 +16,7 @@
 
 tb6612_motor_t init_tb6612(gpio_num_t input1, gpio_num_t input2, gpio_num_t pwm,
                            mcpwm_unit_t mcpwm_unit, mcpwm_timer_t mcpwm_timer,
+                           mcpwm_io_signals_t mcpwm_io_sig,
                            mcpwm_operator_t mcpwm_op) {
 
   // TODO Error checking for multiple of the same pins being used
@@ -25,7 +27,7 @@ tb6612_motor_t init_tb6612(gpio_num_t input1, gpio_num_t input2, gpio_num_t pwm,
   gpio_pad_select_gpio(input2);
   gpio_set_direction(input2, GPIO_MODE_OUTPUT);
 
-  mcpwm_gpio_init(MCPWM_UNIT_0, MCPWM0A, pwm);
+  mcpwm_gpio_init(mcpwm_unit, mcpwm_io_sig, pwm);
 
   mcpwm_config_t config;
   config.frequency = 10000;
@@ -34,34 +36,45 @@ tb6612_motor_t init_tb6612(gpio_num_t input1, gpio_num_t input2, gpio_num_t pwm,
   config.counter_mode = MCPWM_UP_COUNTER;
   config.duty_mode = MCPWM_DUTY_MODE_0;
 
-  mcpwm_init(MCPWM_UNIT_0, MCPWM_TIMER_0, &config);
+  mcpwm_init(mcpwm_unit, mcpwm_timer, &config);
 
-  return (tb6612_motor_t){input1,     input2,      pwm,
-                          mcpwm_unit, mcpwm_timer, mcpwm_op};
+  return (tb6612_motor_t){input1,      input2,       pwm,     mcpwm_unit,
+                          mcpwm_timer, mcpwm_io_sig, mcpwm_op};
 }
 
 void set_speed(tb6612_motor_t *motor, float speed) {
 
-  if (speed >= 0) {
+	printf("%lf\n", speed);
 
-    gpio_set_level(motor->input1, 1);
-    gpio_set_level(motor->input2, 0);
-
-    mcpwm_set_duty(motor->mcpwm_unit, motor->mcpwm_timer, motor->mcpwm_op,
-                   speed);
+  // NaN check
+  if (speed != speed || speed == 0) {
+    brake(motor);
   } else {
 
-    gpio_set_level(motor->input1, 0);
-    gpio_set_level(motor->input2, 1);
+    if (speed >= 0) {
 
-    mcpwm_set_duty(motor->mcpwm_unit, motor->mcpwm_timer, motor->mcpwm_op,
-                   -speed);
+      gpio_set_level(motor->input1, 1);
+      gpio_set_level(motor->input2, 0);
+
+      mcpwm_set_duty(motor->mcpwm_unit, motor->mcpwm_timer, motor->mcpwm_op,
+                     speed);
+    } else {
+
+      gpio_set_level(motor->input1, 0);
+      gpio_set_level(motor->input2, 1);
+
+      mcpwm_set_duty(motor->mcpwm_unit, motor->mcpwm_timer, motor->mcpwm_op,
+                     -speed);
+    }
   }
 }
 
 void brake(tb6612_motor_t *motor) {
   gpio_set_level(motor->input1, 1);
   gpio_set_level(motor->input2, 1);
+
+	mcpwm_set_duty(motor->mcpwm_unit, motor->mcpwm_timer, motor->mcpwm_op,
+                     0.0);
 }
 
 void stop(tb6612_motor_t *motor) {

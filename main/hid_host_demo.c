@@ -459,6 +459,10 @@ int btstack_main(int argc, const char * argv[]);
 int btstack_main(int argc, const char * argv[]){
 		
 
+    uint8_t status = ERROR_CODE_SUCCESS;
+    
+
+	
 		// THIS IS BAD, since we are using btstack temporary, more in main.c
 		driver_control = init_drive_control();		
     (void)argc;
@@ -475,6 +479,8 @@ int btstack_main(int argc, const char * argv[]){
 
     // Turn on the device 
     hci_power_control(HCI_POWER_ON);
+		while(hid_host_connect(remote_addr, hid_host_report_mode, &hid_host_cid) != ERROR_CODE_SUCCESS)
+			;
     return 0;
 }
 

@@ -49,7 +49,7 @@
 #include <esp_task_wdt.h>
 #include "tb6612fng/tb6612fng.h"
 //#include "drive_control/drive_control.h"
-
+#include "ps4/ps4_parser.h"
 
 #include <stddef.h>
 
@@ -76,6 +76,10 @@ void initRobot()
 
     // Enter run loop, does not return
     btstack_run_loop_execute();
+}
+
+void test() {
+
 }
 
 int app_main(void)
