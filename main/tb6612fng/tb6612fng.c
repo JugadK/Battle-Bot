@@ -44,8 +44,6 @@ tb6612_motor_t init_tb6612(gpio_num_t input1, gpio_num_t input2, gpio_num_t pwm,
 
 void set_speed(tb6612_motor_t *motor, float speed) {
 
-	printf("%lf\n", speed);
-
   // NaN check
   if (speed != speed || speed == 0) {
     brake(motor);
@@ -70,7 +68,9 @@ void set_speed(tb6612_motor_t *motor, float speed) {
 }
 
 void brake(tb6612_motor_t *motor) {
-  gpio_set_level(motor->input1, 1);
+
+
+	gpio_set_level(motor->input1, 1);
   gpio_set_level(motor->input2, 1);
 
 	mcpwm_set_duty(motor->mcpwm_unit, motor->mcpwm_timer, motor->mcpwm_op,

@@ -110,21 +110,19 @@ void _drive_robot(controller_state *ps4_controller,
 		double_t angle = acos((dot_prod / speed)) * 180 / 3.14;
 
 
-
-
   }
  	// printf("leftDec : %lf    rightDec : %lf\n", speed * leftDec,
   //       speed * rightDec);
   //	printf("x : %lf   y : %lf   rightDec \n", x, y);
 
-  //set_speed(&driver_control->driveMotorLeft, speed * leftDec);
-  set_speed(&driver_control->driveMotorRight, speed * rightDec);
+  set_speed(&driver_control->driveMotorLeft, speed * leftDec);
+//  set_speed(&driver_control->driveMotorRight, speed * rightDec);
 }
 
 void control_ps4(controller_state *ps4_controller,
                  robot_driver_control_t *driver_control) {
 
-  // printf("%x\n", ps4_controller->rButton);
+   printf("%x\n", ps4_controller->rButton);
 
   if (ps4_controller->rButton) {
     _drive_break(driver_control);

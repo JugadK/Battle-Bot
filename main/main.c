@@ -15,7 +15,7 @@
  *    from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY BLUEKITCHEN GMBH AND CONTRIBUTORS
- * ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * ``AS IS'' ANDANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
  * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL BLUEKITCHEN
  * GMBH OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
@@ -85,7 +85,45 @@ void test() {
 int app_main(void)
 {
 	//esp_task_wdt_init(30, false);
-	 
-	xTaskCreate(initRobot, "BTINPUT", 30000, NULL, 2, NULL);
+
+	
+	gpio_pad_select_gpio(GPIO_NUM_23);
+	gpio_set_direction(GPIO_NUM_23, GPIO_MODE_OUTPUT);
+
+	gpio_set_level(GPIO_NUM_23, 1);
+
+
+	gpio_num_t input1 = GPIO_NUM_19;
+	gpio_num_t input2 = GPIO_NUM_21;
+	gpio_num_t pwm = GPIO_NUM_22;
+	mcpwm_unit_t mcpwm_unit = MCPWM_UNIT_0;
+	mcpwm_timer_t mcpwm_timer = MCPWM_TIMER_2;
+	mcpwm_io_signals_t mcpwm_io_sig = MCPWM2A;
+
+
+  gpio_pad_select_gpio(input1);
+  gpio_set_direction(input1, GPIO_MODE_OUTPUT);
+
+	gpio_set_level(input1, 1);
+
+  gpio_pad_select_gpio(input2);
+  gpio_set_direction(input2, GPIO_MODE_OUTPUT);
+
+	gpio_set_level(input2, 0);
+
+  mcpwm_gpio_init(mcpwm_unit, mcpwm_io_sig, pwm);
+
+  mcpwm_config_t config;
+  config.frequency = 10000;
+  config.cmpr_a = 0;
+  config.cmpr_b = 0;
+  config.counter_mode = MCPWM_UP_COUNTER;
+  config.duty_mode = MCPWM_DUTY_MODE_0;
+
+  mcpwm_init(mcpwm_unit, mcpwm_timer, &config);
+
+	mcpwm_set_duty(mcpwm_unit, mcpwm_timer, MCPWM_OPR_A, 99.9); 
+
+//	xTaskCreate(initRobot, "BTINPUT", 30000, NULL, 2, NULL);
   return 0;
 }	
