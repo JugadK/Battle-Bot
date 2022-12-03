@@ -40,6 +40,7 @@
 
 #include "btstack_port_esp32.h"
 #include "btstack_run_loop.h"
+#include "hal/gpio_types.h"
 #include "hci_dump.h"
 #include "hci_dump_embedded_stdout.h"
 #include <FreeRTOSConfig.h>
@@ -47,6 +48,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <esp_task_wdt.h>
+#include "rom/gpio.h"
 #include "tb6612fng/tb6612fng.h"
 //#include "drive_control/drive_control.h"
 #include "ps4/ps4_parser.h"
@@ -85,7 +87,14 @@ void test() {
 int app_main(void)
 {
 	//esp_task_wdt_init(30, false);
-	 
+
+  gpio_pad_select_gpio(GPIO_NUM_23);
+  gpio_set_direction(GPIO_NUM_23, GPIO_MODE_OUTPUT);
+  
+  // turn on standby so motor controller always takes input
+  gpio_set_level(GPIO_NUM_23, 1);
+
+
 	xTaskCreate(initRobot, "BTINPUT", 30000, NULL, 2, NULL);
   return 0;
 }	
