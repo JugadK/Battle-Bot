@@ -1,7 +1,6 @@
 #include "drive_control.h"
 #include <math.h>
 
-
 typedef enum {
 	NORTHEAST,
 	NORTHWEST,
@@ -12,7 +11,7 @@ typedef enum {
 robot_driver_control_t init_drive_control() {
 
   tb6612_motor_t motorRight =
-      init_tb6612(GPIO_NUM_33, GPIO_NUM_32, GPIO_NUM_27, MCPWM_UNIT_0,
+      init_tb6612(GPIO_NUM_33, GPIO_NUM_32, GPIO_NUM_26, MCPWM_UNIT_0,
                   MCPWM_TIMER_0, MCPWM0A, MCPWM_OPR_A);
   tb6612_motor_t motorLeft =
       init_tb6612(GPIO_NUM_19, GPIO_NUM_21, GPIO_NUM_22, MCPWM_UNIT_0,
@@ -38,85 +37,48 @@ void _drive_robot(controller_state *ps4_controller,
 
   double_t x = ps4_controller->left_joystick_x_axis;
   double_t y = ps4_controller->left_joystick_y_axis;
+	double_t forward_speed = ps4_controller->right_trigger_percent;
+	double_t backward_speed = ps4_controller->left_trigger_percent;
 
   // Deadlock zone
-  if (fabs(x) < 2.0) {
+  if (fabs(x) < 2.0 || isnan(x)) {
     x = 0.0;
   }
 
-  if (fabs(y) < 2.0) {
+  if (fabs(y) < 2.0 || isnan(x)) {
     y = 0.0;
   }
 
-  // we use pythag to figure out the length of the vector
-  double_t speed = sqrt((x * x) + (y * y));
+  double_t leftSpeed = forward_speed;
+  double_t rightSpeed= forward_speed;
 
-
-  double_t leftDec = 1;
-  double_t rightDec = 1;
-
-  if (speed != 0) {
-    double_t dot_prod = 0;
-
-
-		// If we are in the upper half of the joystick 
-    if (((x >= 0 && y >= 0) || (x < 0 && y >= 0))) {
-      dot_prod = (x * 0 + (y)*1);
-    } else {
-
-      dot_prod = (x * 0 + (y) * -1);
-    }
-
-		direction_t direction = NORTHEAST;
-
-    // arccos(a dot b/ |a| |b|) = angle
-		if ((x >= 0 && y >= 0)) {
-			direction = NORTHEAST;
-    } else if (x < 0 && y >= 0) {
-			direction = NORTHWEST;
-    } else if (x < 0 && y < 0) {
-			direction = SOUTHWEST;
-    } else {
-			direction = SOUTHEAST;
-		}
-
-
-		switch(direction) {
-			case NORTHEAST :
-				speed = speed * -1;
-				break;
-			case NORTHWEST :
-				break;
-			case SOUTHWEST :
-				speed = speed * -1;
-				break;
-			case SOUTHEAST :
-				break;
-		}
-
-		/*if ((x >= 0 && y >= 0)) {
-
-      rightDec = (90 - angle) / 90.0;
-    } else if (x < 0 && y >= 0) {
-      leftDec = (90 - angle) / 90.0;
-    } else if (x < 0 && y < 0) {
-      leftDec = ((90 - angle) / 90.0);
-			speed = speed * -1;
-    } else {
-      rightDec = (-1) * ((90 - angle) / 90.0);
-    	speed = speed * -1;
-		}*/
+  if (forward_speed != 0 || backward_speed != 0) {
 	
-		double_t angle = acos((dot_prod / speed)) * 180 / 3.14; 
+		double_t speed =  forward_speed - backward_speed;
 
+		leftSpeed = speed;
+		rightSpeed = speed;
+
+		if(x <= -25) {
+			rightSpeed = speed * ((x + 25)/ (25));
+		} else if(x > -25 && x <= 0) {
+
+			rightSpeed = speed * fabs((-25-x)/25);
+		} else if (x > 0 && x <= 25) {
+			
+			leftSpeed = speed * ((25-x) / 25);
+		} else {
+			leftSpeed = speed * ((x-25) / (-25));
+		}
+
+
+		leftSpeed /= 2;
+		rightSpeed /= 2;
   }
- 	 printf("left : %lf    right : %lf\n", speed * leftDec,
-         speed * rightDec);
-  //	printf("x : %lf   y : %lf   rightDec \n", x, y);
-
-  set_speed(&driver_control->driveMotorLeft, speed * leftDec);
-
-  set_speed(&driver_control->driveMotorRight, speed * rightDec);
+	
+	
+  set_speed(&driver_control->driveMotorLeft, leftSpeed);
+  set_speed(&driver_control->driveMotorRight, rightSpeed);
 }
 
 void control_ps4(controller_state *ps4_controller,
@@ -124,7 +86,7 @@ void control_ps4(controller_state *ps4_controller,
 
   // printf("%x\n", ps4_controller->rButton);
 
-  if (ps4_controller->rButton) {
+  if (ps4_controller->lButton) {
     _drive_break(driver_control);
   } else if(ps4_controller->circle_button) {
 		
