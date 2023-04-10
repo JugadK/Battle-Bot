@@ -35,6 +35,10 @@
  *
  */
 
+#include "bluetooth.h"
+#include "btstack_defines.h"
+#include "btstack_util.h"
+#include "hci.h"
 #define BTSTACK_FILE__ "hid_host_demo.c"
 
 /*
@@ -158,6 +162,7 @@ static void hid_host_setup(void){
     // Initialize LE Security Manager. Needed for cross-transport key derivation
     sm_init();
 #endif
+	
 
     // Initialize HID Host
     hid_host_init(hid_descriptor_storage, sizeof(hid_descriptor_storage));
@@ -169,9 +174,11 @@ static void hid_host_setup(void){
     // try to become master on incoming connections
     hci_set_master_slave_policy(HCI_ROLE_MASTER);
 
+
     // register for HCI events
     hci_event_callback_registration.callback = &packet_handler;
     hci_add_event_handler(&hci_event_callback_registration);
+
 
     // Disable stdout buffering
     setvbuf(stdin, NULL, _IONBF, 0);
@@ -274,18 +281,30 @@ static void packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *pack
     uint8_t   event;
     bd_addr_t event_addr;
     uint8_t   status;
+    uint8_t   rssi;
 
     /* LISTING_RESUME */
     switch (packet_type) {
 		case HCI_EVENT_PACKET:
             event = hci_event_packet_get_type(packet);
             
-            switch (event) {            
+						printf("%d\n", event);	
+            
+						switch (event) {   
+
+							
+							
+							case HCI_EVENT_INQUIRY_RESULT_WITH_RSSI:
+								rssi = packet[11];
+								printf("Hello %d\n", rssi);	
+								break;
 #ifndef HAVE_BTSTACK_STDIN
                 /* @text When BTSTACK_EVENT_STATE with state HCI_STATE_WORKING
                  * is received and the example is started in client mode, the remote SDP HID query is started.
                  */
-                case BTSTACK_EVENT_STATE:
+
+
+								case BTSTACK_EVENT_STATE:
                     if (btstack_event_state_get_state(packet) == HCI_STATE_WORKING){
                         status = hid_host_connect(remote_addr, hid_host_report_mode, &hid_host_cid);
                         if (status != ERROR_CODE_SUCCESS){
@@ -431,7 +450,6 @@ static void show_usage(void){
 static void stdin_process(char cmd){
 
 
-    printf("hello");
     uint8_t status = ERROR_CODE_SUCCESS;
     switch (cmd){
         case 'c':
@@ -459,10 +477,16 @@ int btstack_main(int argc, const char * argv[]);
 int btstack_main(int argc, const char * argv[]){
 		
 
+    uint8_t status = ERROR_CODE_SUCCESS;
+    
+
+		hci_set_inquiry_mode(INQUIRY_MODE_RSSI);
+	
 		// THIS IS BAD, since we are using btstack temporary, more in main.c
 		driver_control = init_drive_control();		
     (void)argc;
     (void)argv;
+		
 
     hid_host_setup();
 
@@ -475,6 +499,8 @@ int btstack_main(int argc, const char * argv[]){
 
     // Turn on the device 
     hci_power_control(HCI_POWER_ON);
+		while(hid_host_connect(remote_addr, hid_host_report_mode, &hid_host_cid) != ERROR_CODE_SUCCESS)
+			;
     return 0;
 }
 

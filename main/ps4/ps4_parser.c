@@ -74,6 +74,7 @@ void _parse_trigger_button(uint8_t trigger_byte, controller_state *ps4_state, tr
 void _parse_joystick(uint8_t y_axis, uint8_t x_axis, controller_state *ps4_state, joystick_t joystick) 
 {
 
+
 	int8_t y_axis_percent = -1 * ((y_axis - 0x80) * 0x64) / 0xFF;
 	int8_t x_axis_percent = ((x_axis - 0x80) * 0x64) / 0xFF;
 

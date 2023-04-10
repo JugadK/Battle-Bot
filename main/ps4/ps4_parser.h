@@ -20,8 +20,9 @@ typedef struct {
 	uint8_t left_trigger_percent;
 	uint8_t right_trigger_percent;
 
+	// 0 is center
 	int8_t left_joystick_x_axis;
-	int8_t left_joystick_y_axis;
+	int8_t left_joystick_y_axis; 
 	int8_t right_joystick_x_axis;
 	int8_t right_joystick_y_axis;
 
